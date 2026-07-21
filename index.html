@@ -133,7 +133,7 @@
     position:relative;
     overflow:hidden;
   }
-  .thumb img{ width:100%; height:100%; object-fit:cover; }
+  .thumb img{ width:100%; height:100%; object-fit:cover; cursor:zoom-in; }
   .thumb .placeholder-star{ width:38px; height:38px; opacity:.55; }
 
   .thumb-nav{
@@ -224,6 +224,87 @@
     .logo{ font-size:26px; }
     nav{ gap:18px; font-size:11px; }
   }
+
+  /* ===== LIGHTBOX (visualização ampliada) ===== */
+  .lightbox{
+    position:fixed; inset:0;
+    background:rgba(24,10,8,.92);
+    display:none;
+    align-items:center; justify-content:center;
+    z-index:200;
+    padding:60px 20px;
+  }
+  .lightbox.open{ display:flex; }
+  .lightbox-content{
+    position:relative;
+    max-width:min(92vw, 640px);
+    width:100%;
+  }
+  .lightbox-content img{
+    width:100%; height:auto;
+    max-height:78vh;
+    object-fit:contain;
+    display:block;
+    background:#fff;
+    border:1px solid var(--gold-soft);
+  }
+  .lightbox-close{
+    position:fixed;
+    top:18px; right:18px;
+    width:40px; height:40px;
+    border-radius:50%;
+    background:rgba(255,255,255,.12);
+    color:#fff;
+    border:none;
+    font-size:22px;
+    line-height:1;
+    cursor:pointer;
+    display:flex; align-items:center; justify-content:center;
+    z-index:201;
+  }
+  .lightbox-close:hover{ background:rgba(255,255,255,.22); }
+  .lightbox-nav{
+    position:fixed;
+    top:50%; transform:translateY(-50%);
+    width:44px; height:44px;
+    border-radius:50%;
+    background:rgba(255,255,255,.12);
+    color:#fff;
+    border:none;
+    font-size:18px;
+    cursor:pointer;
+    display:flex; align-items:center; justify-content:center;
+    z-index:201;
+  }
+  .lightbox-nav:hover{ background:rgba(255,255,255,.22); }
+  .lightbox-nav.prev{ left:16px; }
+  .lightbox-nav.next{ right:16px; }
+  .lightbox-caption{
+    text-align:center;
+    color:var(--blush);
+    font-family:'Cinzel', serif;
+    letter-spacing:.1em;
+    text-transform:uppercase;
+    font-size:13px;
+    margin-top:16px;
+  }
+  .lightbox-dots{
+    display:flex; justify-content:center; gap:7px;
+    margin-top:14px;
+  }
+  .lightbox-dots .dot{
+    width:7px; height:7px; border-radius:50%;
+    background:rgba(255,255,255,.35);
+    cursor:pointer;
+    transition:background .2s ease;
+  }
+  .lightbox-dots .dot.active{ background:#fff; }
+
+  @media (max-width:600px){
+    .lightbox-nav.prev{ left:6px; }
+    .lightbox-nav.next{ right:6px; }
+    .lightbox-nav{ width:38px; height:38px; }
+  }
 </style>
 </head>
 <body>
@@ -265,6 +346,18 @@
 <a class="float-wa" id="floatWa" href="#" target="_blank" rel="noopener">
   <svg viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.198.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12.001 2C6.478 2 2 6.477 2 12c0 1.86.505 3.6 1.377 5.093L2 22l4.99-1.348A9.955 9.955 0 0012.001 22C17.523 22 22 17.523 22 12S17.523 2 12.001 2zm0 18.09a8.06 8.06 0 01-4.278-1.233l-.307-.183-3.13.846.837-3.055-.2-.316A8.09 8.09 0 013.91 12c0-4.463 3.63-8.09 8.09-8.09 4.462 0 8.09 3.627 8.09 8.09 0 4.463-3.628 8.09-8.09 8.09z"/></svg>
 </a>
+
+<!-- Lightbox: visualização ampliada da foto do produto -->
+<div class="lightbox" id="lightbox" onclick="if(event.target===this) closeLightbox()">
+  <button type="button" class="lightbox-close" onclick="closeLightbox()" aria-label="Fechar">&times;</button>
+  <button type="button" class="lightbox-nav prev" id="lightboxPrev" onclick="lightboxChange(-1)" aria-label="Foto anterior">&#10094;</button>
+  <button type="button" class="lightbox-nav next" id="lightboxNext" onclick="lightboxChange(1)" aria-label="Próxima foto">&#10095;</button>
+  <div class="lightbox-content">
+    <img id="lightboxImg" src="" alt="">
+    <div class="lightbox-caption" id="lightboxCaption"></div>
+    <div class="lightbox-dots" id="lightboxDots"></div>
+  </div>
+</div>
 
 <footer>
   LNR — Lunore Semijoias · Atendimento e pagamento via WhatsApp e link de pagamento seguro
@@ -389,6 +482,67 @@
   window.setImg = setImg;
   window.changeImg = changeImg;
 
+  // ---------- Lightbox (visualização ampliada) ----------
+  let currentLightboxId = null;
+
+  function openLightbox(id){
+    const state = imageState[id];
+    if(!state || !state.imgs.length) return;
+    currentLightboxId = id;
+    document.getElementById('lightbox').classList.add('open');
+    document.body.style.overflow = 'hidden';
+    renderLightbox();
+  }
+
+  function closeLightbox(){
+    document.getElementById('lightbox').classList.remove('open');
+    document.body.style.overflow = '';
+    currentLightboxId = null;
+  }
+
+  function lightboxChange(dir){
+    if(!currentLightboxId) return;
+    changeImg(currentLightboxId, dir);
+    renderLightbox();
+  }
+
+  function lightboxSetImg(idx){
+    if(!currentLightboxId) return;
+    setImg(currentLightboxId, idx);
+    renderLightbox();
+  }
+
+  function renderLightbox(){
+    const state = imageState[currentLightboxId];
+    if(!state) return;
+    const p = PRODUCTS.find(pr => pr.id === currentLightboxId);
+
+    document.getElementById('lightboxImg').src = state.imgs[state.idx];
+    document.getElementById('lightboxImg').alt = p ? p.nome : '';
+    document.getElementById('lightboxCaption').textContent = p ? p.nome : '';
+
+    const hasMultiple = state.imgs.length > 1;
+    document.getElementById('lightboxPrev').style.display = hasMultiple ? 'flex' : 'none';
+    document.getElementById('lightboxNext').style.display = hasMultiple ? 'flex' : 'none';
+
+    const dotsEl = document.getElementById('lightboxDots');
+    dotsEl.innerHTML = hasMultiple
+      ? state.imgs.map((_, i) => `<span class="dot${i === state.idx ? ' active' : ''}" onclick="lightboxSetImg(${i})"></span>`).join('')
+      : '';
+  }
+
+  document.addEventListener('keydown', (e) => {
+    if(!document.getElementById('lightbox').classList.contains('open')) return;
+    if(e.key === 'Escape') closeLightbox();
+    if(e.key === 'ArrowLeft') lightboxChange(-1);
+    if(e.key === 'ArrowRight') lightboxChange(1);
+  });
+
+  window.openLightbox = openLightbox;
+  window.closeLightbox = closeLightbox;
+  window.lightboxChange = lightboxChange;
+  window.lightboxSetImg = lightboxSetImg;
+
   function waLink(p){
     const msg = encodeURIComponent(`Olá! Tenho interesse na peça "${p.nome}" (${p.preco}) do catálogo LNR. Poderia me ajudar? 😊`);
     return `https://wa.me/${WHATSAPP_NUMBER}?text=${msg}`;
@@ -424,7 +578,7 @@
         if(imgs.length === 0){
           thumbHtml = starSvg();
         } else {
-          thumbHtml = `<img id="img-${p.id}" src="${imgs[0]}" alt="${p.nome}">`;
+          thumbHtml = `<img id="img-${p.id}" src="${imgs[0]}" alt="${p.nome}" onclick="openLightbox('${p.id}')">`;
           if(hasMultiple){
             thumbHtml += `
               <button type="button" class="thumb-nav prev" onclick="changeImg('${p.id}', -1)" aria-label="Foto anterior">&#10094;</button>
