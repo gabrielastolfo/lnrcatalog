@@ -135,6 +135,40 @@
   }
   .thumb img{ width:100%; height:100%; object-fit:cover; }
   .thumb .placeholder-star{ width:38px; height:38px; opacity:.55; }
+
+  .thumb-nav{
+    position:absolute;
+    top:50%; transform:translateY(-50%);
+    width:28px; height:28px;
+    border:none; border-radius:50%;
+    background:rgba(255,255,255,.85);
+    color:var(--wine-deep);
+    font-size:13px;
+    display:flex; align-items:center; justify-content:center;
+    cursor:pointer;
+    opacity:0;
+    transition:opacity .2s ease, background .2s ease;
+    z-index:2;
+  }
+  .thumb-nav:hover{ background:#fff; }
+  .thumb-nav.prev{ left:8px; }
+  .thumb-nav.next{ right:8px; }
+  .thumb:hover .thumb-nav{ opacity:1; }
+
+  .thumb-dots{
+    position:absolute;
+    bottom:8px; left:0; right:0;
+    display:flex; justify-content:center; gap:5px;
+    z-index:2;
+  }
+  .thumb-dots .dot{
+    width:6px; height:6px; border-radius:50%;
+    background:rgba(255,255,255,.6);
+    border:1px solid rgba(122,27,46,.4);
+    cursor:pointer;
+    transition:background .2s ease;
+  }
+  .thumb-dots .dot.active{ background:var(--wine); border-color:var(--wine); }
   .card-body{ padding:16px 18px 18px; display:flex; flex-direction:column; flex:1; }
   .card-cat{ font-size:10.5px; letter-spacing:.16em; color:var(--gold); font-family:'Cinzel',serif; margin-bottom:4px; }
   .card-name{ font-size:20px; font-weight:600; color:var(--ink); line-height:1.25; }
@@ -201,6 +235,9 @@
      PagSeguro, Stripe, Nuvemshop, InfinitePay, PIX copia-e-cola em link, etc.)
   3) Cada produto tem "img": troque pela URL da foto real do produto.
      Enquanto não tiver a foto, o card mostra um placeholder com a estrela LNR.
+     Para mais de uma foto, separe as URLs com o caractere "|" (pipe), ex:
+     https://.../foto1.jpg|https://.../foto2.jpg|https://.../foto3.jpg
+     O card mostra setinhas e bolinhas para navegar entre as fotos.
 ========================================================================= -->
 <script>
   const WHATSAPP_NUMBER = "5511999999999"; // <-- troque pelo número real da Lunore
@@ -317,6 +354,41 @@
     return `<svg class="placeholder-star" viewBox="0 0 20 40" xmlns="http://www.w3.org/2000/svg"><path d="M10 0 L12 17 L20 20 L12 23 L10 40 L8 23 L0 20 L8 17 Z" fill="#B08D57"/></svg>`;
   }
 
+  // ---------- Galeria de imagens por produto ----------
+  const imageState = {}; // { [id]: { imgs:[...], idx:0 } }
+
+  function getImgs(p){
+    return (p.img || '').split('|').map(s => s.trim()).filter(Boolean);
+  }
+
+  function updateImg(id){
+    const state = imageState[id];
+    if(!state) return;
+    const imgEl = document.getElementById('img-' + id);
+    if(imgEl) imgEl.src = state.imgs[state.idx];
+    const dotsEl = document.getElementById('dots-' + id);
+    if(dotsEl){
+      Array.from(dotsEl.children).forEach((d, i) => d.classList.toggle('active', i === state.idx));
+    }
+  }
+
+  function setImg(id, idx){
+    const state = imageState[id];
+    if(!state) return;
+    state.idx = idx;
+    updateImg(id);
+  }
+
+  function changeImg(id, dir){
+    const state = imageState[id];
+    if(!state) return;
+    state.idx = (state.idx + dir + state.imgs.length) % state.imgs.length;
+    updateImg(id);
+  }
+  // expõe globalmente para os onclick inline no HTML gerado
+  window.setImg = setImg;
+  window.changeImg = changeImg;
+
   function waLink(p){
     const msg = encodeURIComponent(`Olá! Tenho interesse na peça "${p.nome}" (${p.preco}) do catálogo LNR. Poderia me ajudar? 😊`);
     return `https://wa.me/${WHATSAPP_NUMBER}?text=${msg}`;
@@ -343,8 +415,28 @@
         const card = document.createElement('div');
         card.className = 'card';
         const priceLink = p.link && p.link.trim() ? p.link : waLink(p);
+
+        const imgs = getImgs(p);
+        imageState[p.id] = { imgs, idx: 0 };
+        const hasMultiple = imgs.length > 1;
+
+        let thumbHtml;
+        if(imgs.length === 0){
+          thumbHtml = starSvg();
+        } else {
+          thumbHtml = `<img id="img-${p.id}" src="${imgs[0]}" alt="${p.nome}">`;
+          if(hasMultiple){
+            thumbHtml += `
+              <button type="button" class="thumb-nav prev" onclick="changeImg('${p.id}', -1)" aria-label="Foto anterior">&#10094;</button>
+              <button type="button" class="thumb-nav next" onclick="changeImg('${p.id}', 1)" aria-label="Próxima foto">&#10095;</button>
+              <div class="thumb-dots" id="dots-${p.id}">
+                ${imgs.map((_, i) => `<span class="dot${i === 0 ? ' active' : ''}" onclick="setImg('${p.id}', ${i})"></span>`).join('')}
+              </div>`;
+          }
+        }
+
         card.innerHTML = `
-          <div class="thumb">${p.img ? `<img src="${p.img}" alt="${p.nome}">` : starSvg()}</div>
+          <div class="thumb">${thumbHtml}</div>
           <div class="card-body">
             <div class="card-cat">${p.cat}</div>
             <div class="card-name">${p.nome}</div>
