@@ -1,8 +1,8 @@
 id,cat,nome,desc,preco,precoAntigo,img,link
 col-01,Colares,Colar Filhas,"Corrente fina banhada a ródio, pingente com duas meninas","R$ 119,90","R$ 159,90",https://raw.githubusercontent.com/gabrielastolfo/lnrcatalog/refs/heads/main/images/colar-filhas.jpg,https://mpago.la/29LxaUJ
-col-02,Colares,Conjunto Prata,"Conjunto Prata com Zircônias","R$ 169,90","R$ 199,90",https://raw.githubusercontent.com/lunoreaccessori/lunoreaccessori.github.io/refs/heads/main/images/bri-05_brinco-gota-zirconia.jpg,
-col-03,Colares,Colar Perla,Pérolas sintéticas com detalhes dourados,"R$ 104,90",,,
-pul-01,Pulseiras,Pulseira Riviera,"Zircônias cravejadas, ajuste regulável","R$ 79,90",,,
+col-02,Colares,Conjunto Prata,"Conjunto Prata com Zircônias","R$ 179,90","R$ 199,90",https://raw.githubusercontent.com/lunoreaccessori/lunoreaccessori.github.io/refs/heads/main/images/bri-05_brinco-gota-zirconia.jpg,
+col-03,Colares,Colar Cruz,Corrente fina banhada a ouro, com pingente cravejado em Zircônias,"R$ 139,90",,https://raw.githubusercontent.com/lunoreaccessori/lunoreaccessori.github.io/refs/heads/main/images/col-06_colar-medalha-classica.jpg,
+col-05,Colares,Escapulário Cravejado,"Escapulário banhado a ródio, cravejado em Zircônias","R$ 319,90","R$ 399,90",https://raw.githubusercontent.com/lunoreaccessori/lunoreaccessori.github.io/refs/heads/main/images/pul-04_pulseira-charms-dourada.jpg,
 pul-02,Pulseiras,Pulseira Fio de Seda,Corrente delicada tipo cordão,"R$ 59,90",,,
 pul-03,Pulseiras,Pulseira Constelação,"Pingentes de estrela, banho a ouro 18k","R$ 94,90",,,
 bra-01,Braceletes,Bracelete Imperatriz,"Peça rígida, acabamento polido","R$ 129,90",,,
