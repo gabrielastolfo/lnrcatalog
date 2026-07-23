@@ -365,6 +365,19 @@
     letter-spacing:.08em; text-transform:uppercase; cursor:pointer;
   }
   .buy-submit:hover{ opacity:.88; }
+
+  /* ===== Selo "Vendido" ===== */
+  .card.sold .thumb{ opacity:.55; }
+  .sold-badge{
+    position:absolute; top:12px; left:12px;
+    background:var(--wine-deep); color:#fff;
+    font-family:'Cinzel', serif; font-size:10px;
+    letter-spacing:.12em; text-transform:uppercase;
+    padding:6px 12px; z-index:5;
+  }
+  .btn-buy.disabled{
+    background:#C9BBA8; color:#fff; cursor:not-allowed; pointer-events:none;
+  }
 </style>
 </head>
 <body>
@@ -379,6 +392,10 @@
      Para mais de uma foto, separe as URLs com o caractere "|" (pipe), ex:
      https://.../foto1.jpg|https://.../foto2.jpg|https://.../foto3.jpg
      O card mostra setinhas e bolinhas para navegar entre as fotos.
+  4) Cada produto pode ter "status". Deixe em branco (ou "disponivel") enquanto
+     a peça estiver à venda. Quando vender, edite a linha do produto no
+     produtos.csv e coloque "vendido" nessa coluna: o card continua aparecendo
+     no catálogo, mas com o selo "Vendido" e sem o botão de comprar.
 ========================================================================= -->
 <script>
   const WHATSAPP_NUMBER = "5519998068891"; // <-- troque pelo número real da Lunore
@@ -788,18 +805,19 @@
 
       grouped[cat].forEach(p=>{
         const card = document.createElement('div');
-        card.className = 'card';
+        const isSold = (p.status || '').trim().toLowerCase() === 'vendido';
+        card.className = 'card' + (isSold ? ' sold' : '');
         const priceLink = p.link && p.link.trim() ? p.link : waLink(p);
 
         const imgs = getImgs(p);
         imageState[p.id] = { imgs, idx: 0 };
         const hasMultiple = imgs.length > 1;
 
-        let thumbHtml;
+        let thumbHtml = isSold ? `<div class="sold-badge">Vendido</div>` : '';
         if(imgs.length === 0){
-          thumbHtml = starSvg();
+          thumbHtml += starSvg();
         } else {
-          thumbHtml = `<img id="img-${p.id}" src="${imgs[0]}" alt="${p.nome}" onclick="openLightbox('${p.id}')">`;
+          thumbHtml += `<img id="img-${p.id}" src="${imgs[0]}" alt="${p.nome}" onclick="openLightbox('${p.id}')">`;
           if(hasMultiple){
             thumbHtml += `
               <button type="button" class="thumb-nav prev" onclick="changeImg('${p.id}', -1)" aria-label="Foto anterior">&#10094;</button>
@@ -809,6 +827,10 @@
               </div>`;
           }
         }
+
+        const buyBtnHtml = isSold
+          ? `<button type="button" class="btn btn-buy disabled" disabled>Vendido</button>`
+          : `<button type="button" class="btn btn-buy" onclick="openBuyModal('${p.id}')">Comprar</button>`;
 
         card.innerHTML = `
           <div class="thumb">${thumbHtml}</div>
@@ -825,7 +847,7 @@
                 </svg>
                 Perguntar
               </a>
-              <button type="button" class="btn btn-buy" onclick="openBuyModal('${p.id}')">Comprar</button>
+              ${buyBtnHtml}
             </div>
           </div>`;
         grid.appendChild(card);
